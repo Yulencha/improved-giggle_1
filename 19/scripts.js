@@ -48,6 +48,7 @@ function fetchPostsFromVK() {
 function renderNewPosts(newPosts) {
   const postsHTML = newPosts
     .map(function (post) {
+      console.log(post);
       return `
       <li class="widget__post post">
         <div class="post__title">${post.text}</div>
