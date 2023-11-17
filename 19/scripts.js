@@ -49,9 +49,10 @@ function renderNewPosts(newPosts) {
   const postsHTML = newPosts
     .map(function (post) {
       // console.log(post);
-      const img = post.attachments[0]["photo"]
-        ? '<img class="post__img" src=${post.attachments[0]["photo"].sizes[4].url}'
-        : "";
+      const img =
+        post.attachments[0] && post.attachments[0]["photo"]
+          ? '<img class="post__img" src=${post.attachments[0]["photo"].sizes[4].url}'
+          : "";
       return `
       <li class="widget__post post">
         <div class="post__title">${post.text}</div>
