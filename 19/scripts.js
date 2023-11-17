@@ -9,4 +9,111 @@
 При переполнении localStorage, данные, загруженные последними должны вытеснять данные загруженные первыми.
 */
 
-console.log("hello, world");
+// https://oauth.vk.com/authorize?client_id=51794998&display=page&redirect_uri=https://yulencha.github.io/improved-giggle_1&scope=wall&response_type=token&v=5.131&state=123456
+
+// Токен авторизации для взаимодействия с API VK
+const authToken = window.location.hash.split("=")[1].split("&")[0];
+
+// Элементы и переменные для работы виджета
+const widgetElement = document.querySelector(".widget");
+const postsContainer = widgetElement.querySelector(".widget__posts");
+let currentOffset = 0;
+let cachedPosts = [];
+
+// Функция для загрузки постов из VK API
+function fetchPostsFromVK() {
+  const postsToLoad = 10;
+
+  VK.Api.call(
+    "wall.get",
+    {
+      owner_id: -44148670,
+      domain: "igor_knyazev_audobooks",
+      count: postsToLoad,
+      offset: currentOffset,
+      access_token: authToken,
+      v: 5.131,
+    },
+    function (response) {
+      if (response.response) {
+        renderNewPosts(response.response.items);
+        currentOffset += postsToLoad;
+        monitorLastPostForLoadingMore();
+      }
+    }
+  );
+}
+
+// Рендеринг новых постов
+function renderNewPosts(newPosts) {
+  const postsHTML = newPosts
+    .map(function (post) {
+      return `
+      <li class="widget__post post">
+        <div class="post__title">${post.text}</div>
+        <div class="post__date">${new Date(post.date * 1000).toLocaleDateString()}</div>
+        <img class="post__img" src=${post.attachments[0]["photo"]?.sizes[4].url}>
+      </li>
+    `;
+    })
+    .join("");
+
+  postsContainer.insertAdjacentHTML("beforeend", postsHTML);
+  cachedPosts = cachedPosts.concat(newPosts);
+  savePostsData();
+}
+
+// Наблюдение за последним постом для подгрузки новых
+function monitorLastPostForLoadingMore() {
+  const observer = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (entry.isIntersecting) {
+        fetchPostsFromVK();
+      }
+    });
+  });
+
+  const lastPost = document.querySelector(".widget__post:last-child");
+  if (lastPost) {
+    observer.observe(lastPost);
+  }
+}
+
+// Сохранение данных постов в localStorage
+function savePostsData() {
+  localStorage.setItem("cachedPosts", JSON.stringify(cachedPosts));
+  localStorage.setItem("currentOffset", currentOffset);
+  checkLocalStorageCapacity();
+}
+
+// Загрузка данных из кэша при перезагрузке страницы
+function loadCachedData() {
+  const storedPosts = localStorage.getItem("cachedPosts");
+  const storedOffset = localStorage.getItem("currentOffset");
+
+  if (storedPosts) {
+    cachedPosts = JSON.parse(storedPosts);
+    currentOffset = parseInt(storedOffset) || 0;
+    renderNewPosts(cachedPosts);
+  }
+}
+
+// Удаление старых данных при переполнении localStorage
+function evictOldPosts() {
+  const halfLength = Math.floor(cachedPosts.length / 2);
+  cachedPosts.splice(0, halfLength);
+  savePostsData();
+}
+
+// Проверка на переполнение localStorage
+function checkLocalStorageCapacity() {
+  const maxSize = 5000000; // Максимальный размер для localStorage
+  if (JSON.stringify(cachedPosts).length > maxSize) {
+    evictOldPosts();
+  }
+}
+
+// Инициализация виджета
+loadCachedData();
+fetchPostsFromVK();
+setInterval(checkLocalStorageCapacity, 1000);
