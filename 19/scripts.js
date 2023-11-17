@@ -22,7 +22,7 @@ let cachedPosts = [];
 
 // Функция для загрузки постов из VK API
 function fetchPostsFromVK() {
-  const postsToLoad = 10;
+  const postsToLoad = 5;
 
   VK.Api.call(
     "wall.get",
@@ -51,13 +51,14 @@ function renderNewPosts(newPosts) {
       // console.log(post);
       const img =
         post.attachments[0] && post.attachments[0]["photo"]
-          ? '<img class="post__img" src=${post.attachments[0]["photo"].sizes[4].url}'
+          ? `<img class="post__img" src=${post.attachments[0]["photo"].sizes[4].url}`
           : "";
       return `
       <li class="widget__post post">
         <div class="post__title">${post.text}</div>
-        <div class="post__date">${new Date(post.date * 1000).toLocaleDateString()}</div>
         ${img}
+        <div class="post__date">${new Date(post.date * 1000).toLocaleDateString()}</div>
+        
       </li>
     `;
     })
