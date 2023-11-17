@@ -15,8 +15,8 @@
 const authToken = window.location.hash.split("=")[1].split("&")[0];
 
 // Элементы и переменные для работы виджета
-const widgetElement = document.querySelector(".widget");
-const postsContainer = widgetElement.querySelector(".widget__posts");
+
+const postsContainer = document.querySelector(".widget__posts");
 let currentOffset = 0;
 let cachedPosts = [];
 
