@@ -38,6 +38,7 @@ function fetchPostsFromVK() {
       v: 5.131,
     },
     function (response) {
+      console.log(response);
       if (response.response) {
         renderNewPosts(response.response.items);
         currentOffset += postsToLoad;
@@ -52,7 +53,6 @@ function fetchPostsFromVK() {
 function renderNewPosts(newPosts) {
   const postsHTML = newPosts
     .map(function (post) {
-      console.log(post);
       let img = ``;
       if (post.attachments[0] && post.attachments[0]["photo"]) {
         let imgArr = post.attachments[0]["photo"].sizes;
