@@ -59,7 +59,7 @@ function renderNewPosts(newPosts) {
         img = `<img class="post__img" src=${imgUrl}`;
         let imgArr = post.attachments[0]["photo"].sizes;
         outer: for (let i = 0; i < imgArr.length; i++) {
-          if (imgArr[i].height > 500) {
+          if (imgArr[i].height >= 450) {
             imgUrl = imgArr[i].url;
             break outer;
           }
