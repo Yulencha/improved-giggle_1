@@ -19,9 +19,12 @@ const authToken = window.location.hash.split("=")[1].split("&")[0];
 const postsContainer = document.querySelector(".widget__posts");
 let currentOffset = 0;
 let cachedPosts = [];
+let loadingInProgress = false;
 
 // Функция для загрузки постов из VK API
 function fetchPostsFromVK() {
+  if (loadingInProgress) return;
+  loadingInProgress = true;
   const postsToLoad = 5;
 
   VK.Api.call(
@@ -38,6 +41,7 @@ function fetchPostsFromVK() {
       if (response.response) {
         renderNewPosts(response.response.items);
         currentOffset += postsToLoad;
+        loadingInProgress = false;
         monitorLastPostForLoadingMore();
       }
     }
@@ -51,7 +55,7 @@ function renderNewPosts(newPosts) {
       console.log(post);
       const img =
         post.attachments[0] && post.attachments[0]["photo"]
-          ? `<img class="post__img" src=${post.attachments[0]["photo"].sizes[4].url}`
+          ? `<img class="post__img" src=${post.attachments[0]["photo"].sizes[7].url}`
           : "";
       return `
       <li class="widget__post post">
