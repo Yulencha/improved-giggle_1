@@ -23,8 +23,8 @@ let loadingInProgress = false;
 
 // Функция для загрузки постов из VK API
 function fetchPostsFromVK() {
-  if (loadingInProgress) return;
-  loadingInProgress = true;
+  // if (loadingInProgress) return;
+  // loadingInProgress = true;
   const postsToLoad = 5;
 
   VK.Api.call(
@@ -41,9 +41,9 @@ function fetchPostsFromVK() {
       console.log(response);
       if (response.response) {
         renderNewPosts(response.response.items);
-        currentOffset += postsToLoad;
-        loadingInProgress = false;
-        monitorLastPostForLoadingMore();
+        // currentOffset += postsToLoad;
+        // loadingInProgress = false;
+        // monitorLastPostForLoadingMore();
       }
     }
   );
@@ -74,8 +74,8 @@ function renderNewPosts(newPosts) {
     .join("");
 
   postsContainer.insertAdjacentHTML("beforeend", postsHTML);
-  cachedPosts = cachedPosts.concat(newPosts);
-  savePostsData();
+  // cachedPosts = cachedPosts.concat(newPosts);
+  // savePostsData();
 }
 
 // Наблюдение за последним постом для подгрузки новых
@@ -129,6 +129,6 @@ function checkLocalStorageCapacity() {
 }
 
 // Инициализация виджета
-loadCachedData();
+// loadCachedData();
 fetchPostsFromVK();
-setInterval(checkLocalStorageCapacity, 1000);
+// setInterval(checkLocalStorageCapacity, 1000);
