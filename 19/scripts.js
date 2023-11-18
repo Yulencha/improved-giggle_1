@@ -53,14 +53,14 @@ function renderNewPosts(newPosts) {
   const postsHTML = newPosts
     .map(function (post) {
       console.log(post);
-      const img = ``;
+      let img = ``;
       if (post.attachments[0] && post.attachments[0]["photo"]) {
-        const imgUrl = "";
+        let imgUrl = "";
         img = `<img class="post__img" src=${imgUrl}`;
         let imgArr = post.attachments[0]["photo"].sizes;
         outer: for (let i = 0; i < imgArr.length; i++) {
           if (imgArr[i].height > 500) {
-            const imgUrl = imgArr[i].url;
+            imgUrl = imgArr[i].url;
             break outer;
           }
         }
