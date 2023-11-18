@@ -53,10 +53,18 @@ function renderNewPosts(newPosts) {
   const postsHTML = newPosts
     .map(function (post) {
       console.log(post);
-      const img =
-        post.attachments[0] && post.attachments[0]["photo"]
-          ? `<img class="post__img" src=${post.attachments[0]["photo"].sizes[7].url}`
-          : "";
+      const img = ``;
+      if (post.attachments[0] && post.attachments[0]["photo"]) {
+        const imgUrl = "";
+        img = `<img class="post__img" src=${imgUrl}`;
+        let imgArr = post.attachments[0]["photo"].sizes;
+        outer: for (let i = 0; i < imgArr.length; i++) {
+          if (imgArr[i].height > 500) {
+            const imgUrl = imgArr[i].url;
+            break outer;
+          }
+        }
+      }
       return `
       <li class="widget__post post">
         <div class="post__date">${new Date(post.date * 1000).toLocaleDateString()}</div>
