@@ -23,9 +23,10 @@ let loadingInProgress = false;
 
 // Функция для загрузки постов из VK API
 function fetchPostsFromVK() {
-  // if (loadingInProgress) return;
-  // loadingInProgress = true;
+  if (loadingInProgress) return;
+  loadingInProgress = true;
   const postsToLoad = 5;
+  console.log("fetchPostsFromVK начата");
 
   VK.Api.call(
     "wall.get",
@@ -41,16 +42,19 @@ function fetchPostsFromVK() {
       console.log(response);
       if (response.response) {
         renderNewPosts(response.response.items);
-        // currentOffset += postsToLoad;
-        // loadingInProgress = false;
-        // monitorLastPostForLoadingMore();
+        currentOffset += postsToLoad;
+        loadingInProgress = false;
+        monitorLastPostForLoadingMore();
       }
     }
   );
+  console.log("fetchPostsFromVK завершена");
 }
 
 // Рендеринг новых постов
 function renderNewPosts(newPosts) {
+  console.log("Начало рендеринга постов");
+
   const postsHTML = newPosts
     .map(function (post) {
       let img = ``;
@@ -74,28 +78,37 @@ function renderNewPosts(newPosts) {
     .join("");
 
   postsContainer.insertAdjacentHTML("beforeend", postsHTML);
-  // cachedPosts = cachedPosts.concat(newPosts);
-  // savePostsData();
+
+  cachedPosts = cachedPosts.concat(newPosts);
+  savePostsData();
+  console.log("Рендеринг постов завершен");
 }
 
 // Наблюдение за последним постом для подгрузки новых
 function monitorLastPostForLoadingMore() {
-  const observer = new IntersectionObserver(function (entries) {
-    entries.forEach(function (entry) {
-      if (entry.isIntersecting) {
-        fetchPostsFromVK();
-      }
-    });
-  });
-
+  console.log("monitorLastPostForLoadingMore вызвана");
   const lastPost = document.querySelector(".widget__post:last-child");
   if (lastPost) {
+    const observer = new IntersectionObserver(
+      function (entries, self) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            console.log("Пересечение обнаружено - загрузка новых постов");
+            fetchPostsFromVK();
+            // Отмена наблюдения за старым последним элементом
+            self.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 1.0 }
+    );
+
     observer.observe(lastPost);
   }
 }
-
 // Сохранение данных постов в localStorage
 function savePostsData() {
+  console.log("Сохранение данных в localStorage");
   localStorage.setItem("cachedPosts", JSON.stringify(cachedPosts));
   localStorage.setItem("currentOffset", currentOffset);
   checkLocalStorageCapacity();
@@ -103,6 +116,7 @@ function savePostsData() {
 
 // Загрузка данных из кэша при перезагрузке страницы
 function loadCachedData() {
+  console.log("Загрузка данных из localStorage");
   const storedPosts = localStorage.getItem("cachedPosts");
   const storedOffset = localStorage.getItem("currentOffset");
 
@@ -122,6 +136,7 @@ function evictOldPosts() {
 
 // Проверка на переполнение localStorage
 function checkLocalStorageCapacity() {
+  console.log("Проверка емкости localStorage");
   const maxSize = 5000000; // Максимальный размер для localStorage
   if (JSON.stringify(cachedPosts).length > maxSize) {
     evictOldPosts();
@@ -129,6 +144,6 @@ function checkLocalStorageCapacity() {
 }
 
 // Инициализация виджета
-// loadCachedData();
+loadCachedData();
 fetchPostsFromVK();
-// setInterval(checkLocalStorageCapacity, 1000);
+setInterval(checkLocalStorageCapacity, 1000);
