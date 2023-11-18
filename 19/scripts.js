@@ -26,7 +26,6 @@ function fetchPostsFromVK() {
   if (loadingInProgress) return;
   loadingInProgress = true;
   const postsToLoad = 5;
-  console.log("fetchPostsFromVK начата");
 
   VK.Api.call(
     "wall.get",
@@ -43,12 +42,12 @@ function fetchPostsFromVK() {
       if (response.response) {
         renderNewPosts(response.response.items);
         currentOffset += postsToLoad;
-        loadingInProgress = false;
         monitorLastPostForLoadingMore();
       }
+      loadingInProgress = false;
+      console.log("fetchPostsFromVK завершена");
     }
   );
-  console.log("fetchPostsFromVK завершена");
 }
 
 // Рендеринг новых постов
@@ -100,7 +99,7 @@ function monitorLastPostForLoadingMore() {
           }
         });
       },
-      { threshold: 1.0 }
+      { threshold: 0.5 }
     );
 
     observer.observe(lastPost);
@@ -123,7 +122,10 @@ function loadCachedData() {
   if (storedPosts) {
     cachedPosts = JSON.parse(storedPosts);
     currentOffset = parseInt(storedOffset) || 0;
-    renderNewPosts(cachedPosts);
+    const postsToRender = cachedPosts.slice(-10); // Загружаем последние 10 постов
+    renderNewPosts(postsToRender);
+
+    // renderNewPosts(cachedPosts);
   }
 }
 
