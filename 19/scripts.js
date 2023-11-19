@@ -41,7 +41,7 @@ function fetchPostsFromVK() {
       console.log(response);
       if (response.response) {
         renderNewPosts(response.response.items);
-        savePostsToCache(newPosts);
+        savePostsToCache(response.response.items);
         currentOffset += postsToLoad; // Обновляем смещение
       } else {
         console.error("Ошибка при загрузке постов:", response);
