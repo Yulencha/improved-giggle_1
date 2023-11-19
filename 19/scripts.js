@@ -54,29 +54,31 @@ function fetchPostsFromVK() {
 function renderNewPosts(newPosts) {
   console.log("Начало рендеринга постов");
 
-  const postsHTML = newPosts
-    .map(function (post) {
-      let img = ``;
-      if (post.attachments[0] && post.attachments[0]["photo"]) {
-        let imgArr = post.attachments[0]["photo"].sizes;
-        outer: for (let i = 0; i < imgArr.length; i++) {
-          if (imgArr[i].height >= 450) {
-            img = `<img class="post__img" src=${imgArr[i].url}`;
-            break outer;
-          }
-        }
-      }
-      return `
-      <li class="widget__post post">
-        <div class="post__date">${new Date(post.date * 1000).toLocaleDateString()}</div>
-        <div class="post__title">${post.text}</div>
-        ${img}
-      </li>
-    `;
-    })
-    .join("");
+  newPosts.forEach((post) => {
+    const post = document.createElement("li");
+    post.className = "widget__post post";
+    let imgHTML = ``;
+    if (post.attachments && post.attachments[0] && post.attachments[0]["photo"]) {
+      const optimalHeight = 450;
+      let closestImage = post.attachments[0]["photo"].sizes[0]; // Начальное изображение для сравнения
 
-  postsContainer.insertAdjacentHTML("beforeend", postsHTML);
+      post.attachments[0]["photo"].sizes.forEach((imgSize) => {
+        if (
+          Math.abs(imgSize.height - optimalHeight) < Math.abs(closestImage.height - optimalHeight)
+        ) {
+          closestImage = imgSize; // Обновление ближайшего изображения
+        }
+      });
+
+      imgHTML = `<img class="post__img" src="${closestImage.url}">`;
+    }
+
+    post.innerHTML = `
+    <div class="post__date">${new Date(post.date * 1000).toLocaleDateString()}</div>
+    <div class="post__title">${post.text}</div>
+    ${imgHTML}`;
+    postsContainer.append(post);
+  });
 
   cachedPosts = cachedPosts.concat(newPosts);
   savePostsData();
@@ -148,4 +150,4 @@ function checkLocalStorageCapacity() {
 // Инициализация виджета
 loadCachedData();
 fetchPostsFromVK();
-setInterval(checkLocalStorageCapacity, 1000);
+// setInterval(checkLocalStorageCapacity, 1000);
