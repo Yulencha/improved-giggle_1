@@ -1,5 +1,5 @@
 /*
-Реализовать виджет, отображающий список постов из любого паблика в VK (подойдет любой паблик, где постов очень много). 
+19. Реализовать виджет, отображающий список постов из любого паблика в VK (подойдет любой паблик, где постов очень много). 
 Например, с помощью этой функции API VK. Виджет должен иметь фиксированные размеры и возможность прокрутки. 
 При прокрутке содержимого виджета до конца должны подгружаться новые посты. Необходимо реализовать возможность 
 кэширования уже загруженных данных: если пользователь закрыл страницу, а потом снова открыл ее, 
@@ -7,7 +7,12 @@
 (новые данные должны подгружаться из учетом уже загруженных ранее).
 
 При переполнении localStorage, данные, загруженные последними должны вытеснять данные загруженные первыми.
+
+20. Реализовать функцию подсчета объема памяти занимаемого данными в LocalStorage для предыдущей задачи. 
+При изменении данных в localStorage в консоль должен выводиться объем занятой памяти / максимальный размер 	хранилища. 
 */
+
+import { testLocalStorageLimit, getCurrentLocalStorageSize } from "../18.js";
 
 // https://oauth.vk.com/authorize?client_id=51794998&display=page&redirect_uri=https://yulencha.github.io/improved-giggle_1&scope=wall&response_type=token&v=5.131&state=123456
 
@@ -151,6 +156,12 @@ function savePostsToCache(newPosts) {
       }
     }
   }
+  // Вывод информации о размере localStorage после каждого сохранения
+  const currentSize = getCurrentLocalStorageSize();
+  const maxSize = localStorage.getItem("maxLocalStorageSize"); // Используем сохраненное значение
+  console.log(
+    `Текущий размер localStorage: ${currentSize} байт, Максимальный размер: ${maxSize} байт`
+  );
 }
 
 function initWidget() {
@@ -162,6 +173,11 @@ function initWidget() {
     currentOffset += cachedPosts.length;
   } else {
     fetchPostsFromVK();
+  }
+  // Высчитываем максимальный размер localStorage
+  if (!localStorage.getItem("maxLocalStorageSize")) {
+    const maxLocalStorageSize = testLocalStorageLimit();
+    localStorage.setItem("maxLocalStorageSize", maxLocalStorageSize);
   }
 }
 
