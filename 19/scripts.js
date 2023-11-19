@@ -83,9 +83,20 @@ function renderNewPosts(newPosts) {
   savePostsToCache(newPosts);
   console.log("Рендеринг постов завершен");
 }
-
+// Обеспечиваем прокрутку, когда пользователь проскролит до конца (почти до конца)
 widgetContainer.addEventListener("scroll", () => {
-  if (widgetContainer.scrollHeight - widgetContainer.scrollTop === widgetContainer.clientHeight) {
+  // Находим последний пост в контейнере
+  const lastPost = widgetContainer.querySelector(".widget__post:last-child");
+
+  // Вычисляем высоту последнего поста. Если постов нет, используем 0
+  const lastPostHeight = lastPost ? lastPost.offsetHeight : 0;
+
+  // Рассчитываем, когда начать загрузку новых постов
+  // Начинаем загрузку, когда пользователь доскроллил до высоты последнего поста от конца контейнера
+  if (
+    widgetContainer.scrollHeight - widgetContainer.scrollTop - lastPostHeight <=
+    widgetContainer.clientHeight
+  ) {
     fetchPostsFromVK();
   }
 });
