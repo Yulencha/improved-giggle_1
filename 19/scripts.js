@@ -54,15 +54,15 @@ function fetchPostsFromVK() {
 function renderNewPosts(newPosts) {
   console.log("Начало рендеринга постов");
 
-  newPosts.forEach((post) => {
-    const post = document.createElement("li");
-    post.className = "widget__post post";
+  newPosts.forEach((postData) => {
+    const postElement = document.createElement("li");
+    postElement.className = "widget__post post";
     let imgHTML = ``;
-    if (post.attachments && post.attachments[0] && post.attachments[0]["photo"]) {
+    if (postData.attachments && postData.attachments[0] && postData.attachments[0]["photo"]) {
       const optimalHeight = 450;
-      let closestImage = post.attachments[0]["photo"].sizes[0]; // Начальное изображение для сравнения
+      let closestImage = postData.attachments[0]["photo"].sizes[0]; // Начальное изображение для сравнения
 
-      post.attachments[0]["photo"].sizes.forEach((imgSize) => {
+      postData.attachments[0]["photo"].sizes.forEach((imgSize) => {
         if (
           Math.abs(imgSize.height - optimalHeight) < Math.abs(closestImage.height - optimalHeight)
         ) {
@@ -73,11 +73,11 @@ function renderNewPosts(newPosts) {
       imgHTML = `<img class="post__img" src="${closestImage.url}">`;
     }
 
-    post.innerHTML = `
-    <div class="post__date">${new Date(post.date * 1000).toLocaleDateString()}</div>
-    <div class="post__title">${post.text}</div>
+    postElement.innerHTML = `
+    <div class="post__date">${new Date(postData.date * 1000).toLocaleDateString()}</div>
+    <div class="post__title">${postData.text}</div>
     ${imgHTML}`;
-    postsContainer.append(post);
+    postsContainer.append(postElement);
   });
 
   cachedPosts = cachedPosts.concat(newPosts);
@@ -150,4 +150,3 @@ function checkLocalStorageCapacity() {
 // Инициализация виджета
 loadCachedData();
 fetchPostsFromVK();
-// setInterval(checkLocalStorageCapacity, 1000);
