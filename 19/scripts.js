@@ -15,10 +15,10 @@
 const authToken = window.location.hash.split("=")[1].split("&")[0];
 
 // Элементы и переменные для работы виджета
-
+const widgetContainer = document.querySelector(".widget");
 const postsContainer = document.querySelector(".widget__posts");
 let currentOffset = 0;
-let cachedPosts = [];
+
 let loadingInProgress = false;
 
 // Функция для загрузки постов из VK API
@@ -41,6 +41,9 @@ function fetchPostsFromVK() {
       console.log(response);
       if (response.response) {
         renderNewPosts(response.response.items);
+        currentOffset += postsToLoad; // Обновляем смещение
+      } else {
+        console.error("Ошибка при загрузке постов:", response);
       }
       loadingInProgress = false;
       console.log("fetchPostsFromVK завершена");
@@ -77,72 +80,78 @@ function renderNewPosts(newPosts) {
     ${imgHTML}`;
     postsContainer.append(postElement);
   });
-
+  savePostsToCache(newPosts);
   console.log("Рендеринг постов завершен");
 }
 
-// Наблюдение за последним постом для подгрузки новых
-function monitorLastPostForLoadingMore() {
-  console.log("monitorLastPostForLoadingMore вызвана");
-  const lastPost = document.querySelector(".widget__post:last-child");
-  if (lastPost) {
-    const observer = new IntersectionObserver(
-      function (entries, self) {
-        entries.forEach(function (entry) {
-          if (entry.isIntersecting) {
-            console.log("Пересечение обнаружено - загрузка новых постов");
-            fetchPostsFromVK();
-            // Отмена наблюдения за старым последним элементом
-            self.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.5 }
-    );
+widgetContainer.addEventListener("scroll", () => {
+  if (widgetContainer.scrollHeight - widgetContainer.scrollTop === widgetContainer.clientHeight) {
+    fetchPostsFromVK();
+  }
+});
 
-    observer.observe(lastPost);
+function savePostsToCache(newPosts) {
+  try {
+    console.log("Попытка сохранить новые посты в localStorage");
+    // Попытка получить уже сохраненные посты из localStorage
+    let cachedPosts = JSON.parse(localStorage.getItem("cachedPosts")) || [];
+    console.log("Текущее количество сохраненных постов:", cachedPosts.length);
+    // Объединение старых сохраненных постов с новыми постами
+    const updatedPosts = [...cachedPosts, ...newPosts];
+    localStorage.setItem("cachedPosts", JSON.stringify(updatedPosts));
+
+    // Попытка сохранить обновленный массив постов в localStorage
+    localStorage.setItem("cachedPosts", JSON.stringify(updatedPosts));
+    console.log("Новые посты успешно добавлены, общее количество постов:", updatedPosts.length);
+  } catch (e) {
+    console.log("Ошибка при сохранении в localStorage:", e.message);
+
+    // Если произошла ошибка (обычно это QuotaExceededError при переполнении localStorage)
+    if (e.name === "QuotaExceededError") {
+      console.log("LocalStorage переполнен, попытка удалить старые посты");
+
+      // Повторная попытка получения и обработки сохраненных постов
+      let cachedPosts = JSON.parse(localStorage.getItem("cachedPosts")) || [];
+      while (cachedPosts.length > 0 && e.name === "QuotaExceededError") {
+        try {
+          // Удаляем самый старый пост (первый элемент массива) для освобождения места
+          cachedPosts.shift();
+
+          // Повторная попытка сохранить обновленный массив постов в localStorage
+          console.log("Пост удален, попытка повторного сохранения");
+          localStorage.setItem("cachedPosts", JSON.stringify([...cachedPosts, ...newPosts]));
+
+          // Очищаем ошибку, если сохранение прошло успешно
+          e = null;
+          console.log("Сохранение прошло успешно");
+        } catch (err) {
+          // Если удаление одного поста не решило проблему, повторяем цикл
+          e = err;
+          console.log("Ошибка при повторном сохранении:", e.message);
+        }
+      }
+
+      // Если после всех попыток ошибка все еще существует, выводим сообщение об ошибке
+      if (e) {
+        console.error("Не удалось сохранить посты после всех попыток: ", e);
+      } else {
+        console.log("Новые посты успешно сохранены после удаления старых");
+      }
+    }
   }
 }
-// Сохранение данных постов в localStorage
-function savePostsData() {
-  console.log("Сохранение данных в localStorage");
-  localStorage.setItem("cachedPosts", JSON.stringify(cachedPosts));
-  localStorage.setItem("currentOffset", currentOffset);
-  checkLocalStorageCapacity();
-}
 
-// Загрузка данных из кэша при перезагрузке страницы
-function loadCachedData() {
-  console.log("Загрузка данных из localStorage");
-  const storedPosts = localStorage.getItem("cachedPosts");
-  const storedOffset = localStorage.getItem("currentOffset");
-
-  if (storedPosts) {
-    cachedPosts = JSON.parse(storedPosts);
-    currentOffset = parseInt(storedOffset) || 0;
-    const postsToRender = cachedPosts.slice(-10); // Загружаем последние 10 постов
-    renderNewPosts(postsToRender);
-
-    // renderNewPosts(cachedPosts);
-  }
-}
-
-// Удаление старых данных при переполнении localStorage
-function evictOldPosts() {
-  const halfLength = Math.floor(cachedPosts.length / 2);
-  cachedPosts.splice(0, halfLength);
-  savePostsData();
-}
-
-// Проверка на переполнение localStorage
-function checkLocalStorageCapacity() {
-  console.log("Проверка емкости localStorage");
-  const maxSize = 5000000; // Максимальный размер для localStorage
-  if (JSON.stringify(cachedPosts).length > maxSize) {
-    evictOldPosts();
+function initWidget() {
+  // При инициализации виджета проверяем localStorage
+  const cachedPosts = JSON.parse(localStorage.getItem("cachedPosts"));
+  if (cachedPosts && cachedPosts.length > 0) {
+    renderNewPosts(cachedPosts);
+    // Обновляем смещение, чтобы загружать новые посты после последнего сохраненного
+    currentOffset += cachedPosts.length;
+  } else {
+    fetchPostsFromVK();
   }
 }
 
 // Инициализация виджета
-loadCachedData();
-fetchPostsFromVK();
+initWidget();
