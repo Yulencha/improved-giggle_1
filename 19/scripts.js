@@ -41,8 +41,6 @@ function fetchPostsFromVK() {
       console.log(response);
       if (response.response) {
         renderNewPosts(response.response.items);
-        currentOffset += postsToLoad;
-        monitorLastPostForLoadingMore();
       }
       loadingInProgress = false;
       console.log("fetchPostsFromVK завершена");
@@ -80,8 +78,6 @@ function renderNewPosts(newPosts) {
     postsContainer.append(postElement);
   });
 
-  cachedPosts = cachedPosts.concat(newPosts);
-  savePostsData();
   console.log("Рендеринг постов завершен");
 }
 
