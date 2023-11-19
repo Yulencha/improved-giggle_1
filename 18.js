@@ -32,7 +32,7 @@ export function testLocalStorageLimit() {
   }
 }
 
-function getCurrentLocalStorageSize() {
+export function getCurrentLocalStorageSize() {
   let totalSize = 0;
 
   // Перебор всех ключей в localStorage и подсчет общего размера
