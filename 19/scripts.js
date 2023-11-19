@@ -41,6 +41,7 @@ function fetchPostsFromVK() {
       console.log(response);
       if (response.response) {
         renderNewPosts(response.response.items);
+        savePostsToCache(newPosts);
         currentOffset += postsToLoad; // Обновляем смещение
       } else {
         console.error("Ошибка при загрузке постов:", response);
@@ -80,7 +81,7 @@ function renderNewPosts(newPosts) {
     ${imgHTML}`;
     postsContainer.append(postElement);
   });
-  savePostsToCache(newPosts);
+
   console.log("Рендеринг постов завершен");
 }
 // Обеспечиваем прокрутку, когда пользователь проскролит до конца (почти до конца)
